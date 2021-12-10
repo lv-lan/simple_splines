@@ -4,25 +4,30 @@
 
 std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::vector<std::pair<double,double> > &points_, int idx){
 
-    if(idx < 1 || (idx + 1) > (int)points_.size() - 2) {
 
-        ROS_ERROR("idx < 1 || idx > (int)points_.size() - 2\n");
+    if(idx >= (int)points_.size() - 1) {
+
+        ROS_ERROR("idx >= (int)points_.size() - 1\n");
         return std::vector<double>{};
 
     }
 
-    
     double P_0, P_1, P_2, P_3; 
 
     double P1_dash, P2_dash; 
 
-    P_0  = points_[idx- 1].second, P_1 = points_[idx].second, P_2 = points_[idx+ 1].second, P_3 = points_[idx + 2].second;
-    
+    P_1 = points_[idx].second, P_2 = points_[idx+ 1].second;
+
+    P_0  = (idx - 1 < 0 ? P_2 : points_[idx - 1].second); 
+
+    P_3 = (idx + 2 > (int)points_.size() - 1 ? P_2 : points_[idx + 2].second);
+
+
+    ROS_WARN("P_0: %f P_3: %f\n", P_0, P_3);
+
     P1_dash = (P_2 - P_0)/2.0;
     
     P2_dash = (P_3 - P_1)/2.0;
-
-    //P = a_3 * mu^3 + a_2 * mu^2 + a_1 * mu  + a_0 
 
     double a_0, a_1, a_2, a_3 ; 
 
@@ -42,14 +47,9 @@ void SimpleSplines::generate_spline_path_points(const std::vector<std::pair<doub
     ROS_INFO("Inside generate_spline_path_points function!\n");
     int sz_ = (int)points_.size(); 
 
-    if(sz_ < 4) {
+    ROS_WARN("sz_: %d\n", sz_);
 
-        ROS_ERROR("sz< 4 -- returning!\n");
-        return;
-
-    }
-
-    for(int i = 1; i <= sz_ - 3; i++) {
+    for(int i = 0; i < sz_ -1  ; i++) {
 
         std::vector<double> v_ = generate_spline_patch_cofficients(points_, i);
 
@@ -124,7 +124,7 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
 
     ROS_INFO("path_points.size(): %d\n", path_points_.size());
 
-    if(path_points_.size() > 4) {
+    if(path_points_.size() > 2) {
 
         generate_spline_path_points(path_points_);
 
