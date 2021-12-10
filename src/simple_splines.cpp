@@ -1,6 +1,13 @@
 #include <simple_splines/simple_splines.h>
 #include <simple_splines/vis_functions.h>
-#include <std_msgs/Bool.h>
+
+/**
+ * @brief Returns the value of the cofficients a_0, a_1, a_2 and a_3 for a spline patch between idx and idx + 1
+ * 
+ * @param points_ 
+ * @param idx 
+ * @return std::vector<double> 
+ */
 
 std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::vector<std::pair<double,double> > &points_, int idx){
 
@@ -18,10 +25,9 @@ std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::
 
     P_1 = points_[idx].second, P_2 = points_[idx+ 1].second;
 
-    P_0  = (idx - 1 < 0 ? P_2 : points_[idx - 1].second); 
+    P_0  = (idx - 1 < 0 ? P_2 : points_[idx - 1].second);  //Setting the slope to 0 for the first waypoint in the path
 
-    P_3 = (idx + 2 > (int)points_.size() - 1 ? P_2 : points_[idx + 2].second);
-
+    P_3 = (idx + 2 > (int)points_.size() - 1 ? P_2 : points_[idx + 2].second); //Setting the gradient to 0 for last waypoint in the path
 
     ROS_WARN("P_0: %f P_3: %f\n", P_0, P_3);
 
@@ -42,6 +48,11 @@ std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::
 }
 
 
+/**
+ * @brief Iterates over waypoint pairs and generates spline patches between them 
+ * 
+ * @param points_ 
+ */
 void SimpleSplines::generate_spline_path_points(const std::vector<std::pair<double, double> >&points_){
 
     ROS_INFO("Inside generate_spline_path_points function!\n");
@@ -62,6 +73,13 @@ void SimpleSplines::generate_spline_path_points(const std::vector<std::pair<doub
 
 }
 
+/**
+ * @brief Generates spline patch between two given waypoints
+ * 
+ * @param v_ 
+ * @param points_ 
+ * @param idx 
+ */
 void SimpleSplines::generate_spline_patch_points(const std::vector<double> &v_, const std::vector<std::pair<double, double> >&points_,  int idx){
 
     ROS_INFO("Generating spline_patch_points!\n");
@@ -82,8 +100,6 @@ void SimpleSplines::generate_spline_patch_points(const std::vector<double> &v_, 
 
     double x0_ = P_1.first, x1_ = P_2.first;  
 
-    //std::vector<std::pair<double, double> > waypoints_;
-
     for(double mu = 0 ; mu <= 1; mu += step_sz){
 
         double x_ = x0_ + mu * (x1_ - x0_);
@@ -100,9 +116,7 @@ void SimpleSplines::generate_spline_patch_points(const std::vector<double> &v_, 
 
     }
 
-    //ROS_INFO("waypoints_.size(): %d\n", waypoints_.size());
-
-   // vis_functions::publish_waypoint_array_(waypoints_, waypoint_array_pub_, nh_);
+  
 
 }
 
@@ -130,34 +144,16 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
 
     }
 
-    /*if(gen_path_flag) {
-
-        generate_spline_path_points(path_points_);
-        gen_path_flag = 0 ;
-    
-    }*/
-
 }
 
-/*void SimpleSplines::gen_path_flag_callback(const std_msgs::Bool *msg) {
-
-    if(msg->data == true) {
-
-        gen_path_flag = true; 
-    
-    }
-    
-}*/
 
 SimpleSplines::SimpleSplines(ros::NodeHandle &nh) : nh_{nh}
 {
 
     ROS_INFO("Inside the SimpleSplines constructor!\n");
     marker_id =0 ;
-    gen_path_flag = 0 ;
-
+ 
     point_sub_ = nh_.subscribe("clicked_point", 100, &SimpleSplines::clicked_pose_callback, this);
-    //gen_path_flag_sub_ = nh_.subscribe("/gen_path_flag", 100, &SimpleSplines::gen_path_flag_callback, this);
     waypoint_array_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("waypoints_array", 1000, true);
     waypoint_pub_ = nh_.advertise<visualization_msgs::Marker>("waypoints_", 1000, true);
 
