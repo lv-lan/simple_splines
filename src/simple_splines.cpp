@@ -180,7 +180,7 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
     
     ROS_INFO("waypoints_.size(): %d\n", waypoints_.size());
 
-    if(waypoints_.size() > 4) {
+    if(waypoints_.size() > 1) {
 
         path_points_.resize(0);
         processed_path_points_.resize(0);
