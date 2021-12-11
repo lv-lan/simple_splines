@@ -9,6 +9,7 @@ Panels:
         - /Map1
         - /Marker1
         - /MarkerArray1
+        - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 721
   - Class: rviz/Selection
@@ -67,15 +68,23 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /simple_spline_nh/waypoints_
+      Marker Topic: /simple_spline_nh/path_points_
       Name: Marker
       Namespaces:
-        {}
+        /simple_spline_nh: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /simple_spline_nh/pathpoints_array
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /simple_spline_nh/waypoints_array
+      Marker Topic: /simple_spline_nh/processed_pathpoints_array
       Name: MarkerArray
       Namespaces:
         {}
@@ -109,16 +118,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 29.335124969482422
+      Distance: 21.669254302978516
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 2.6902549266815186
+        Y: -1.6993885040283203
+        Z: 0.0017251031240448356
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
