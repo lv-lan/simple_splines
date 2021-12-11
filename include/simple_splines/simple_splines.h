@@ -18,9 +18,8 @@ class SimpleSplines
         
         std::vector<double> generate_spline_patch_cofficients(const std::vector<std::pair<double,double> > &points_, int idx);
 
-        void generate_spline(std::vector<std::pair<double, double> >&points_);
-        void generate_spline_patch(const std::vector<double> &v_, const std::vector<std::pair<double, double> >&points_,  const int idx);  
-
+        void generate_complete_spline(const std::vector<std::pair<double, double> >&points_);
+        void generate_spline_patch(std::vector<std::pair<double, double> >&path_points_list_, std::vector<double> &cofficients_, const std::vector<std::pair<double, double> >&waypoint_list_,  int idx);
         void clicked_pose_callback(const geometry_msgs::PointStampedConstPtr &msg);
         void process_path_points(std::vector<std::pair<double, double> > &waypoints_);
         void insert_intermediate_point(std::vector<std::pair<double, double> > &waypoints_, const int idx, const double dis_    ) ;
@@ -29,7 +28,7 @@ class SimpleSplines
         ros::NodeHandle nh_;
         std::vector<std::pair<double, double> > path_points_;
         ros::Subscriber point_sub_, gen_path_flag_sub_;
-        ros::Publisher waypoint_pub_, waypoint_array_pub_, waypoint_array_pub_modified_;
+        ros::Publisher waypoint_pub_, waypoint_array_pub_;
         int marker_id ;
         int gen_path_flag;
         std::vector<std::pair<double, double> > waypoints_;

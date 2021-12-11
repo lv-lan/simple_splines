@@ -53,28 +53,20 @@ std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::
  * 
  * @param points_ 
  */
-void SimpleSplines::generate_spline(std::vector<std::pair<double, double> >&points_){
+void SimpleSplines::generate_complete_spline(const std::vector<std::pair<double, double> >&waypoint_list_){
 
     ROS_INFO("Inside generate_spline_path_points function!\n");
-    int sz_ = (int)points_.size(); 
+    int sz_ = (int)waypoint_list_.size(); 
 
     ROS_WARN("sz_: %d\n", sz_);
 
     for(int i = 0; i < sz_ -1  ; i++) {
 
-        std::vector<double> v_ = generate_spline_patch_cofficients(points_, i);
+        std::vector<double> cofficients_ = generate_spline_patch_cofficients(waypoint_list_, i);
 
-        generate_spline_patch(v_, points_, i);        
+        generate_spline_patch(path_points_, cofficients_, waypoint_list_, i);        
 
     }
-
-
-    ROS_WARN("waypoints_.size() --- Before processing: %d\n", waypoints_.size());
-    vis_functions::publish_waypoint_array_(waypoints_, waypoint_array_pub_, nh_);
-    
-    process_path_points(waypoints_);
-    ROS_WARN("waypoints_.size() --- After processing: %d\n", waypoints_.size());
-    
 
 
 }
@@ -86,9 +78,9 @@ void SimpleSplines::generate_spline(std::vector<std::pair<double, double> >&poin
  * @param points_ 
  * @param idx 
  */
-void SimpleSplines::generate_spline_patch(const std::vector<double> &v_, const std::vector<std::pair<double, double> >&points_,  int idx){
+void SimpleSplines::generate_spline_patch(std::vector<std::pair<double, double> >&path_points_list_, std::vector<double> &cofficients_, const std::vector<std::pair<double, double> >&waypoint_list_,  int idx){
 
-    if(idx >= (int)points_.size() - 1) {
+    if(idx >= (int)waypoint_list_.size() - 1) {
 
         ROS_ERROR("idx >= (int)points_.size() - 1\n");
         return;
@@ -98,16 +90,16 @@ void SimpleSplines::generate_spline_patch(const std::vector<double> &v_, const s
     ROS_INFO("Generating spline_patch_points!\n");
 
     double a_0, a_1, a_2, a_3; 
-    a_0 = v_[0]; 
-    a_1 = v_[1]; 
-    a_2 = v_[2]; 
-    a_3 = v_[3];
+    a_0 = cofficients_[0]; 
+    a_1 = cofficients_[1]; 
+    a_2 = cofficients_[2]; 
+    a_3 = cofficients_[3];
 
     ROS_WARN("a_0: %f a_1: %f a_2: %f a_3: %f\n", a_0, a_1, a_2, a_3);
     
     double step_sz = 0.1;
  
-    std::pair<double, double> P_1 = points_[idx], P_2 = points_[idx+ 1];
+    std::pair<double, double> P_1 = waypoint_list_[idx], P_2 = waypoint_list_[idx+ 1];
 
     ROS_WARN("P1: (%f,%f) P2: (%f,%f)\n", P_1.first, P_1.second, P_2.first, P_2.second);
 
@@ -121,71 +113,12 @@ void SimpleSplines::generate_spline_patch(const std::vector<double> &v_, const s
 
         ROS_INFO("x_: %f y_: %f\n", x_, y_);
 
-        waypoints_.push_back({x_, y_}); 
+        path_points_list_.push_back({x_, y_}); 
 
     }
 
 }
 
-void SimpleSplines::insert_intermediate_point(std::vector<std::pair<double, double> > &waypoints_, const int idx, const double dis_) {
-
-    if(idx == (int)waypoints_.size() - 1) {
-
-        ROS_ERROR("idx == (int)waypoints.size() - 1!\n");
-        return; 
-
-    }
-
-    double x1 = waypoints_[idx].first, x2 = waypoints_[idx + 1].first; 
-
-    double y1 = waypoints_[idx].second , y2 = waypoints_[idx + 1].second;
-
-    double theta_; 
-
-    if(x1 == x2) {theta_ = acos(0);}
-
-    else {theta_ = atan2((y2 - y1) ,(x2 - x1));}
-
-    double x_, y_; 
-
-    x_ = x1 + dis_ * cos(theta_);
-    y_= y1 + dis_ * sin(theta_);
-
-    std::pair<double, double> pt_{x_, y_};
-
-    waypoints_.insert(waypoints_.begin() + idx, pt_);
-
-}
-
-
-
-
-void SimpleSplines::process_path_points(std::vector<std::pair<double, double> > &waypoints_){
-
-    double dis_ = 0.1;
-
-    int cnt_ = 0 ;
-
-    int sz_ = (int)waypoints_.size(); 
-
-    for(int i =0 ;i < sz_ - 1; i++) {
-
-        std::pair<double, double> a_{waypoints_[i]}, b_{waypoints_[i + 1]};
-
-        double grid_dis_ = sqrt(pow(a_.first - b_.first, 2) + pow(a_.second - b_.second, 2));
-
-        if(grid_dis_  > dis_) {
-            
-            //ROS_WARN("prev_sz: %d\n", waypoints_.size());
-            cnt_++;
-            insert_intermediate_point(waypoints_, i, dis_);
-            //ROS_WARN("new_sz: %d\n", waypoints_.size());
-            
-        }
-
-    }
-
-}
 
 void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConstPtr &msg){
 
@@ -199,15 +132,19 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
 
     vis_functions::publish_waypoint_(pt_, waypoint_pub_, nh_, marker_id++);
 
-    path_points_.push_back(pt_);
+    waypoints_.push_back(pt_);
 
-    ROS_INFO("path_points.size(): %d\n", path_points_.size());
+    ROS_INFO("waypoints_.size(): %d\n", waypoints_.size());
 
-    if(path_points_.size() > 4) {
+    if(waypoints_.size() > 4) {
 
-        generate_spline(path_points_);
+        generate_complete_spline(waypoints_);
+        vis_functions::publish_waypoint_array_(path_points_, waypoint_array_pub_, nh_);
 
     }
+
+
+
 
 }
 
