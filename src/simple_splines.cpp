@@ -1,5 +1,6 @@
 #include <simple_splines/simple_splines.h>
 #include <simple_splines/vis_functions.h>
+#include <simple_splines/process_path_points.h>
 
 /**
  * @brief Returns the value of the cofficients a_0, a_1, a_2 and a_3 for a spline patch between idx and idx + 1
@@ -114,6 +115,48 @@ void SimpleSplines::generate_spline_patch(std::vector<std::pair<double, double> 
         ROS_INFO("x_: %f y_: %f\n", x_, y_);
 
         path_points_list_.push_back({x_, y_}); 
+        
+    }
+
+}
+
+
+
+
+void SimpleSplines::process_path_points(const std::vector<std::pair<double, double> > &path_points_list, std::vector<std::pair<double, double> > &processed_path_points_list){
+
+    int sz_ = (int)path_points_list.size(); 
+
+    if(sz_ < 2) {
+
+        ROS_ERROR("sz_ < 2!\n");
+        return;
+
+    }
+
+    processed_path_points_list = path_points_list;
+
+    double dis_ = 0.25; 
+
+    for(int i = 0 ;i < (int)processed_path_points_list.size() - 1; i++) {
+
+        std::pair<double, double> p1_ = {processed_path_points_list[i].first, processed_path_points_list[i].second};
+        std::pair<double, double> p2_ = {processed_path_points_list[i + 1].first, processed_path_points_list[i + 1].second};
+
+        double cdis_ = sqrt(pow(p1_.first - p2_.first,2 ) + pow(p1_.second - p2_.second, 2));
+
+        if(cdis_ > dis_) {
+
+            process_pathpoints::insert_point_at(processed_path_points_list, i, dis_);
+
+        }
+
+        else if(cdis_ < dis_) {
+
+            process_pathpoints::delete_point_at(processed_path_points_list, i);
+            i--;
+
+        }
 
     }
 
@@ -130,17 +173,25 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
 
     std::pair<double, double> pt_ = {msg->point.x, msg->point.y};
 
-    vis_functions::publish_waypoint_(pt_, waypoint_pub_, nh_, marker_id++);
+    vis_functions::publish_waypoint_(pt_, path_point_pub_, nh_, marker_id++);
 
     waypoints_.push_back(pt_);
+
 
     ROS_INFO("waypoints_.size(): %d\n", waypoints_.size());
 
     if(waypoints_.size() > 4) {
 
         generate_complete_spline(waypoints_);
-        vis_functions::publish_waypoint_array_(path_points_, waypoint_array_pub_, nh_);
+        vis_functions::publish_waypoint_array_(path_points_, path_point_array_pub_, nh_);
 
+        ROS_WARN("path_points_.size(): %d\n", path_points_.size());
+
+        process_path_points(path_points_, processed_path_points_);
+
+        ROS_WARN("processed_path_points_.size(): %d\n", processed_path_points_.size());
+        vis_functions::publish_waypoint_array_(processed_path_points_, processed_path_point_array_pub_, nh_);
+        
     }
 
 
@@ -155,9 +206,10 @@ SimpleSplines::SimpleSplines(ros::NodeHandle &nh) : nh_{nh}
     marker_id =0 ;
  
     point_sub_ = nh_.subscribe("clicked_point", 100, &SimpleSplines::clicked_pose_callback, this);
-    waypoint_array_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("waypoints_array", 1000, true);
-    waypoint_pub_ = nh_.advertise<visualization_msgs::Marker>("waypoints_", 1000, true);
-
+    path_point_pub_ = nh_.advertise<visualization_msgs::Marker>("path_points_", 1000, true);
+    path_point_array_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("pathpoints_array", 1000, true);
+    processed_path_point_array_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("processed_pathpoints_array", 1000, true);
+    
 
 }
 
