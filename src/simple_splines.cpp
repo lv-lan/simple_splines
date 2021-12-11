@@ -177,19 +177,24 @@ void SimpleSplines::clicked_pose_callback(const geometry_msgs::PointStampedConst
 
     waypoints_.push_back(pt_);
 
-
+    
     ROS_INFO("waypoints_.size(): %d\n", waypoints_.size());
 
     if(waypoints_.size() > 4) {
 
+        path_points_.resize(0);
+        processed_path_points_.resize(0);
+
         generate_complete_spline(waypoints_);
         vis_functions::publish_waypoint_array_(path_points_, path_point_array_pub_, nh_);
-
+        
+        
         ROS_WARN("path_points_.size(): %d\n", path_points_.size());
+        ROS_WARN("BEFORE PROCESSING --- processed_path_points_.size(): %d\n", processed_path_points_.size());
 
         process_path_points(path_points_, processed_path_points_);
 
-        ROS_WARN("processed_path_points_.size(): %d\n", processed_path_points_.size());
+        ROS_WARN("AFTER PROCESSING --- processed_path_points_.size(): %d\n", processed_path_points_.size());
         vis_functions::publish_waypoint_array_(processed_path_points_, processed_path_point_array_pub_, nh_);
         
     }
