@@ -28,7 +28,7 @@ std::vector<double> SimpleSplines::generate_spline_patch_cofficients(const std::
 
     P_0  = (idx - 1 < 0 ? P_2 : points_[idx - 1].second);  //Setting the slope to 0 for the first waypoint in the path
 
-    P_3 = (idx + 2 > (int)points_.size() - 1 ? P_2 : points_[idx + 2].second); //Setting the gradient to 0 for last waypoint in the path
+    P_3 = (idx + 2 > (int)points_.size() - 1 ? P_1 : points_[idx + 2].second); //Setting the gradient to 0 for last waypoint in the path
 
     ROS_WARN("P_0: %f P_3: %f\n", P_0, P_3);
 
