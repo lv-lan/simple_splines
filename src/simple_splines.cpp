@@ -121,7 +121,12 @@ void SimpleSplines::generate_spline_patch(std::vector<std::pair<double, double> 
 }
 
 
-
+/**
+ * @brief Makes the points in a spline patch equi-distant from one another
+ * 
+ * @param path_points_list 
+ * @param processed_path_points_list 
+ */
 
 void SimpleSplines::process_path_points(const std::vector<std::pair<double, double> > &path_points_list, std::vector<std::pair<double, double> > &processed_path_points_list){
 
