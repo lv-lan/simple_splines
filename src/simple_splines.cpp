@@ -4,7 +4,8 @@
 
 /**
  * @brief Returns the value of the cofficients a_0, a_1, a_2 and a_3 for a spline patch between idx and idx + 1
- * 
+ * {P_1, P_2} represent the spline end-points, {P_0, P_3} represent the point before and after {P_1, P_2} respectively
+ *  {P1_dash, P2_dash} represent the gradient at {P1, P2}ros
  * @param points_ 
  * @param idx 
  * @return std::vector<double> 
